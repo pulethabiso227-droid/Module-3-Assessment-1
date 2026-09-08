@@ -1,0 +1,189 @@
+<!--
+  The Funny People Factory
+  -------------------------
+  An interactive "build-a-character" generator: eight SVG layers (hair, eyes,
+  glasses, facial hair, mouth, shirt, pants, shoes) are swapped in and out by
+  script.js to build a silly character, styled like an ID badge.
+
+  This file only holds the STRUCTURE (the empty slots the character parts get
+  inserted into, and the control panel buttons). All appearance lives in
+  style.css and all behavior/data lives in script.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Funny People Factory</title>
+
+<!-- Two playful Google Fonts: Fredoka for big/rounded headline text, Space Grotesk for body/UI text -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Page title + one-line intro. -->
+  <header>
+    <h1>The Funny People Factory</h1>
+    <p class="tagline">Mix and match eight features to build a proper weirdo, then send them off with an official ID card, a job title, and a set of made-up stats.</p>
+  </header>
+  <p class="hint">Hit randomize for instant chaos, or use the arrows below to fine-tune every detail.</p>
+
+  <!-- Two-column layout: the character "ID card" on the left, the feature controls on the right.
+       On narrow screens, style.css stacks these into a single column. -->
+  <div class="stage-grid">
+
+    <!-- ============ THE ID CARD ============
+         A character preview styled like a lanyard badge: clip + punch hole at
+         the top, the character SVG in the middle, then a generated name,
+         job title, and stat bars at the bottom. -->
+    <div class="badge" id="badge">
+      <div class="badge-clip"><div class="badge-hole"></div></div>
+      <div class="badge-topline">
+        <span>Official Weirdo ID</span>
+        <span id="badge-id">NO. 00000</span>
+      </div>
+      <div class="stage">
+        <!--
+          The character is one SVG, drawn back-to-front (SVG has no z-index —
+          later elements simply paint over earlier ones):
+            shadow -> pants -> shoes -> arms -> shirt -> neck -> head ->
+            mouth -> eyes -> facial hair -> glasses -> hair
+          The empty <g id="part-*"> elements are placeholders. script.js fills
+          each one's innerHTML with the currently-selected option's SVG markup
+          (see render() in script.js). Everything else here (shadow, arms,
+          neck, head, blush) is a fixed base that never changes.
+        -->
+        <svg class="char" viewBox="0 0 320 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your generated character">
+          <!-- Ground shadow -->
+          <ellipse cx="160" cy="468" rx="95" ry="12" fill="rgba(32,21,48,.18)"/>
+
+          <!-- Swappable: legs/pants, then shoes on top of them -->
+          <g id="part-pants"></g>
+          <g id="part-shoes"></g>
+
+          <!-- Fixed: arms + hands (skin tone), drawn before the shirt so the shirt covers the shoulder joints -->
+          <rect x="62" y="228" width="32" height="96" rx="16" fill="#E8B48A" stroke="#C98A5D" stroke-width="2.5"/>
+          <circle cx="78" cy="324" r="15" fill="#E8B48A" stroke="#C98A5D" stroke-width="2.5"/>
+          <rect x="226" y="228" width="32" height="96" rx="16" fill="#E8B48A" stroke="#C98A5D" stroke-width="2.5"/>
+          <circle cx="242" cy="324" r="15" fill="#E8B48A" stroke="#C98A5D" stroke-width="2.5"/>
+
+          <!-- Swappable: shirt/torso -->
+          <g id="part-shirt"></g>
+
+          <!-- Fixed: neck + head (skin tone) + a little blush on each cheek -->
+          <rect x="144" y="206" width="32" height="24" fill="#E8B48A"/>
+          <circle cx="160" cy="144" r="72" fill="#E8B48A" stroke="#C98A5D" stroke-width="3"/>
+          <ellipse cx="122" cy="168" rx="12" ry="7" fill="#FF7A8A" opacity=".35"/>
+          <ellipse cx="198" cy="168" rx="12" ry="7" fill="#FF7A8A" opacity=".35"/>
+
+          <!-- Swappable: face features, in this order so e.g. a big beard can
+               overlap the mouth and glasses always sit on top of the eyes -->
+          <g id="part-mouth"></g>
+          <g id="part-eyes"></g>
+          <g id="part-facial"></g>
+          <g id="part-glasses"></g>
+          <g id="part-hair"></g>
+        </svg>
+      </div>
+      <!-- Generated name/title (newIdentity() in script.js) and the four random stat bars (newStats()) -->
+      <div class="badge-name" id="badge-name">&mdash;</div>
+      <div class="badge-title" id="badge-title">&mdash;</div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <!-- ============ CONTROL PANEL ============ -->
+    <div class="control-panel">
+
+      <!-- Big actions: randomize the whole character, or just re-roll the name/title/stats -->
+      <div class="actions">
+        <button class="btn btn-primary" onclick="randomizeAll()">🎲 Randomize everything</button>
+        <button class="btn btn-secondary" onclick="newIdentity()">🪪 New name &amp; title</button>
+      </div>
+
+      <!--
+        One row per swappable feature. Every row follows the same pattern:
+        a Previous/Next chip button that calls step('<category>', ±1), and a
+        label + count (e.g. "Googly" / "1 / 6") that render() keeps in sync.
+        The <category> string here must match a key in the PARTS object in
+        script.js (hair, eyes, glasses, facial, mouth, shirt, pants, shoes).
+      -->
+      <div class="ctrl-list">
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">💇</span>Hair</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('hair',-1)" aria-label="Previous hair">◀</button>
+            <div class="ctrl-value"><span id="label-hair">&mdash;</span><small id="count-hair"></small></div>
+            <button class="chip" onclick="step('hair',1)" aria-label="Next hair">▶</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">👀</span>Eyes</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('eyes',-1)" aria-label="Previous eyes">◀</button>
+            <div class="ctrl-value"><span id="label-eyes">&mdash;</span><small id="count-eyes"></small></div>
+            <button class="chip" onclick="step('eyes',1)" aria-label="Next eyes">▶</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">🕶️</span>Glasses</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('glasses',-1)" aria-label="Previous glasses">◀</button>
+            <div class="ctrl-value"><span id="label-glasses">&mdash;</span><small id="count-glasses"></small></div>
+            <button class="chip" onclick="step('glasses',1)" aria-label="Next glasses">▶</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">🧔</span>Facial hair</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('facial',-1)" aria-label="Previous facial hair">◀</button>
+            <div class="ctrl-value"><span id="label-facial">&mdash;</span><small id="count-facial"></small></div>
+            <button class="chip" onclick="step('facial',1)" aria-label="Next facial hair">▶</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">👄</span>Mouth</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('mouth',-1)" aria-label="Previous mouth">◀</button>
+            <div class="ctrl-value"><span id="label-mouth">&mdash;</span><small id="count-mouth"></small></div>
+            <button class="chip" onclick="step('mouth',1)" aria-label="Next mouth">▶</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">👕</span>Shirt</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('shirt',-1)" aria-label="Previous shirt">◀</button>
+            <div class="ctrl-value"><span id="label-shirt">&mdash;</span><small id="count-shirt"></small></div>
+            <button class="chip" onclick="step('shirt',1)" aria-label="Next shirt">▶</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">👖</span>Pants</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('pants',-1)" aria-label="Previous pants">◀</button>
+            <div class="ctrl-value"><span id="label-pants">&mdash;</span><small id="count-pants"></small></div>
+            <button class="chip" onclick="step('pants',1)" aria-label="Next pants">▶</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span class="ctrl-icon">👟</span>Shoes</div>
+          <div class="ctrl-control">
+            <button class="chip" onclick="step('shoes',-1)" aria-label="Previous shoes">◀</button>
+            <div class="ctrl-value"><span id="label-shoes">&mdash;</span><small id="count-shoes"></small></div>
+            <button class="chip" onclick="step('shoes',1)" aria-label="Next shoes">▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Every weirdo is 100% randomly generated and 0% real.</footer>
+</div>
+
+<!-- All character data + interaction logic lives here; see script.js for the heavily-commented version -->
+<script src="script.js"></script>
+</body>
+</html>

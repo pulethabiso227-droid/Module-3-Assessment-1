@@ -1,25 +1,201 @@
-body{
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    background-color: white;
-}
+  /* =================================================================
+     THE FUNNY PEOPLE FACTORY — stylesheet
+     Sections below, top to bottom:
+       1. Design tokens (colors)      6. Control panel + buttons
+       2. Base reset                  7. Per-feature control rows
+       3. Page layout + header text   8. Footer + accessibility
+       4. ID card ("badge") + anims   9. Responsive / reduced-motion tweaks
+       5. Character stage
+     ================================================================= */
 
-#left-column{
-    width: 60%;
-    float: left;
-    background-color: aqua;
-}
+  /* ---- 1. Design tokens ----
+     One small palette, reused everywhere via var(--name) instead of
+     repeating hex codes: a deep plum background, a warm ivory "paper"
+     surface for cards, near-black ink for text on that ivory, and three
+     bright accents (coral/marigold/teal) for buttons, stats, and chips. */
+  :root{
+    --bg:#241B2F;
+    --surface:#FBF3E4;
+    --ink:#201530;
+    --cream:#FBF3E4;
+    --coral:#FF5A5F;
+    --marigold:#FFC93C;
+    --teal:#2EC4B6;
+    --line: rgba(32,21,48,.14);
+  }
 
-#right-column img{
-    width: 230px;
-    margin-left: 140px;
-    margin-top: 100px;
-}
+  /* ---- 2. Base reset ---- */
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.07) 1px, transparent 0) 0 0/24px 24px,
+      var(--bg);
+    color: var(--cream);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+  }
+  /* ---- 3. Page layout + header text ---- */
+  .wrap{ max-width:1080px; margin:0 auto; padding:40px 20px 64px; }
+  header{ max-width:640px; }
+  h1{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height:1.05;
+    margin:0 0 12px;
+  }
+  .tagline{ margin:0; color:rgba(251,243,228,.72); font-size:1.05rem; line-height:1.5; }
+  .hint{ margin: 14px 0 28px; color:rgba(251,243,228,.5); font-size:.9rem; }
 
-img#logo{
-    position: fixed;
-    width: 150px;
-    bottom: 20px;
-    right: 10px;
-}
+  /* Fixed-width card column + a flexible column for the controls; collapses
+     to one column below 780px (see the .stage-grid override in that query). */
+  .stage-grid{ display:grid; grid-template-columns: 360px 1fr; gap:28px; align-items:start; }
+  @media (max-width:780px){ .stage-grid{ grid-template-columns:1fr; } }
+
+  /* ---- 4. ID card ("badge") + animations ----
+     .badge is the ivory card itself. It plays a one-time "drop and clip on"
+     entrance (dropIn) when the page loads, and a quick wiggle (pulse) every
+     time Randomize is pressed — see pulseCard() in script.js, which removes
+     and re-adds the "pulse" class so the animation can replay on demand. */
+  .badge{
+    background:var(--surface);
+    color:var(--ink);
+    border-radius:24px;
+    padding:0 22px 26px;
+    box-shadow:0 24px 44px -20px rgba(0,0,0,.6);
+    animation: dropIn .7s cubic-bezier(.22,1.5,.4,1) both;
+    transform-origin: top center;
+  }
+  @keyframes dropIn{
+    0%{ transform: translateY(-46px) rotate(-8deg); opacity:0; }
+    100%{ transform: translateY(0) rotate(-2deg); opacity:1; }
+  }
+  @keyframes pulse{
+    0%{ transform: rotate(-2deg) scale(1); }
+    35%{ transform: rotate(2.5deg) scale(1.035); }
+    65%{ transform: rotate(-1.5deg) scale(.985); }
+    100%{ transform: rotate(-2deg) scale(1); }
+  }
+  .badge.pulse{ animation: pulse .55s ease forwards; }
+
+  /* Small decorative "lanyard clip" poking above the card (negative top
+     pulls it up out of the card's edge) with a punch-hole circle inside it. */
+  .badge-clip{
+    width:60px; height:20px;
+    background:#D8D2C4;
+    border-radius:8px;
+    margin:0 auto;
+    position:relative;
+    top:-14px;
+    box-shadow:0 3px 6px rgba(0,0,0,.3);
+  }
+  .badge-hole{
+    width:12px; height:12px; border-radius:50%;
+    background:var(--bg);
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  }
+  .badge-topline{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:.68rem; letter-spacing:.02em; color:rgba(32,21,48,.5);
+    margin: -6px 2px 8px;
+  }
+  /* ---- 5. Character stage ----
+     The little "photo booth floor" the SVG character stands on. */
+  .stage{
+    background: linear-gradient(180deg,#F0E7D3,#E6DAC0);
+    border:1px solid rgba(32,21,48,.08);
+    border-radius:16px;
+    display:flex; justify-content:center;
+    padding:6px 0 4px;
+  }
+  /* The character SVG scales responsively but is capped so it doesn't get huge on wide cards */
+  .char{ width:100%; max-width:280px; height:auto; display:block; }
+
+  /* Generated name / job title, and the four stat bars beneath them */
+  .badge-name{
+    font-family:'Fredoka',sans-serif;
+    font-size:1.5rem; font-weight:600;
+    text-align:center; margin:16px 0 2px;
+  }
+  .badge-title{
+    text-align:center; font-size:.85rem; color:rgba(32,21,48,.6); margin-bottom:16px;
+  }
+  .stats{ display:grid; gap:9px; }
+  .stat-row{
+    display:grid; grid-template-columns:52px 1fr 28px;
+    align-items:center; gap:10px; font-size:.72rem; color:rgba(32,21,48,.7);
+  }
+  .stat-track{ height:7px; border-radius:5px; background:rgba(32,21,48,.1); overflow:hidden; }
+  /* Width is set per-bar as an inline style by newStats() in script.js (e.g. "width:64%") */
+  .stat-fill{ display:block; height:100%; border-radius:5px; }
+
+  /* ---- 6. Control panel + buttons ---- */
+  .control-panel{
+    background:var(--surface); color:var(--ink);
+    border-radius:24px; padding:22px 22px 8px;
+  }
+  .actions{ display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+  .btn{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600; font-size:.92rem;
+    border-radius:14px; padding:13px 18px;
+    cursor:pointer; border:2px solid transparent;
+    transition: transform .12s ease;
+  }
+  .btn:active{ transform: scale(.96); }
+  .btn-primary{ background:var(--coral); color:var(--ink); }
+  .btn-secondary{ background:transparent; border-color:var(--ink); color:var(--ink); }
+
+  /* ---- 7. Per-feature control rows ----
+     One .ctrl-row per swappable feature (hair, eyes, ...); see the repeated
+     markup in index.html. Rows share one panel with hairline dividers
+     between them rather than each being its own separate boxed card. */
+  .ctrl-list{ display:flex; flex-direction:column; }
+  .ctrl-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:14px; padding:14px 2px; border-bottom:1px solid var(--line);
+  }
+  .ctrl-row:last-child{ border-bottom:none; }
+  .ctrl-label{ display:flex; align-items:center; gap:10px; font-weight:600; min-width:118px; }
+  .ctrl-icon{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1rem; background:rgba(32,21,48,.06);
+    flex-shrink:0;
+  }
+  .ctrl-control{ display:flex; align-items:center; gap:10px; flex:1; justify-content:flex-end; }
+  .ctrl-value{ text-align:center; min-width:96px; }
+  .ctrl-value span{ display:block; font-weight:600; font-size:.9rem; }
+  .ctrl-value small{ display:block; color:rgba(32,21,48,.45); font-size:.68rem; margin-top:1px; }
+  /* Round ◀ / ▶ buttons that call step() in script.js */
+  .chip{
+    width:38px; height:38px; border-radius:50%;
+    background:var(--teal); color:var(--ink);
+    border:none; font-size:.95rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform .12s ease;
+    flex-shrink:0;
+  }
+  .chip:active{ transform:scale(.9); }
+
+  /* ---- 8. Footer + accessibility ---- */
+  footer{ margin-top:36px; text-align:center; color:rgba(251,243,228,.4); font-size:.82rem; }
+
+  /* Visible outline when a button is reached via keyboard (Tab), not just on mouse hover/click */
+  button:focus-visible{ outline:3px solid var(--marigold); outline-offset:2px; }
+
+  /* ---- 9. Responsive / reduced-motion tweaks ----
+     Respect the OS-level "reduce motion" setting by turning off the
+     card's entrance/pulse animations and button press transitions. */
+  @media (prefers-reduced-motion:reduce){
+    .badge{ animation:none; }
+    .badge.pulse{ animation:none; }
+    .btn, .chip{ transition:none; }
+  }
+
+  /* On very narrow phones, let each control row wrap to two lines instead of squeezing */
+  @media (max-width:480px){
+    .ctrl-row{ flex-wrap:wrap; }
+    .ctrl-label{ min-width:0; }
+  }
